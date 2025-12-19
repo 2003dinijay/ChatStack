@@ -20,7 +20,7 @@ jobs:
           cache: 'maven'
       
       - name: Build with Maven
+        working-directory: ./AuthService
         run: |
-          cd AuthService
           chmod +x mvnw
-          ./mvnw clean install -DskipTests
+          ./mvnw clean package -DskipTests
