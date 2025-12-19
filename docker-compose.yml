@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  auth-db:
+    image: postgres:15-alpine
+    container_name: auth-pg-container
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: auth_db
+    ports:
+      - "5432:5432"
+    
+  auth-service:
+    build: ./AuthService
+    container_name: auth-service-container
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=auth-db
+      - DB_PORT=5432
+      - JWT_SECRET=this_is_the_secret_key
+    depends_on:
+      - auth-db
+
+  # Add other services here as needed

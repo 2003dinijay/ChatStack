@@ -1,0 +1,29 @@
+# --- OS / IDE ---
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.log
+
+# --- Spring Boot (AuthService) ---
+AuthService/target/
+AuthService/help.md
+AuthService/.mvn/wrapper/maven-wrapper.jar
+AuthService/.mvn/wrapper/maven-wrapper.properties
+
+# --- NestJS (chat-service) ---
+chat-service/node_modules/
+chat-service/dist/
+chat-service/npm-debug.log*
+chat-service/yarn-debug.log*
+chat-service/yarn-error.log*
+
+# --- NextJS (Frontend) ---
+Frontend/node_modules/
+Frontend/.next/
+Frontend/out/
+Frontend/build/
+
+# --- DevOps / Secrets ---
+.env
+docker-compose.override.yml
