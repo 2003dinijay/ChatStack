@@ -1,4 +1,4 @@
-name: AuthService CI
+name: ChatStack CI
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: '20'
       - name: Build ChatService
-        working-directory: ./ChatService
+        working-directory: ./chat-service
         run: |
           npm install
           npm run build
