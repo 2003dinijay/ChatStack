@@ -1,0 +1,28 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - 'Frontend/**'
+    branches: [main]
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './Frontend/package-lock.json'
+      
+      - name: Build Frontend
+        working-directory: ./Frontend
+        run: |
+          npm install
+          npm run build
+        env:
+          NEXT_PUBLIC_AUTH_API: http://localhost:8080
+          NEXT_PUBLIC_CHAT_API: http://localhost:3333

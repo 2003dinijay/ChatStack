@@ -34,4 +34,9 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
     }
+
+    public User getUserByUsername(String username){
+        return userRepository.findByUsername(username)
+                .orElseThrow(()-> new RuntimeException("Username not found"));
+    }
 }

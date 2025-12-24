@@ -12,7 +12,7 @@ COPY . .
 # Build the NestJS app
 RUN npm run build
 
-EXPOSE 3001
+EXPOSE 3333
 
 # Run the app in production mode
 CMD ["npm", "run", "start:prod"]
