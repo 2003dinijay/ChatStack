@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/context/AuthContext";
+import Nav from "@/components/ui/nav";
 
 export const metadata: Metadata = {
   title: "ChatStack"
