@@ -10,8 +10,8 @@ export class PostController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async createPost(@Request() req, @Body() createPostDto: CreatePostDto) {
-        const userId = req.user.id;
+    async createPost(@Request() req: any, @Body() createPostDto: CreatePostDto) {
+        const userId = req.user.userId;
         return this.postService.createPost(createPostDto, userId);
     }
 
@@ -24,10 +24,10 @@ export class PostController {
     @Patch(':id')
     async updatePost(
         @Param('id', ParseIntPipe) postId: number,
-        @Request() req,
+        @Request() req: any,
         @Body() updatePostDto: UpdatePostDto
     ) {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         return this.postService.updatePost(postId, updatePostDto, userId);
     }
 
@@ -35,9 +35,9 @@ export class PostController {
     @Delete(':id')
     async deletePost(
         @Param('id', ParseIntPipe) postId: number,
-        @Request() req
+        @Request() req: any
     ) {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         return this.postService.deletePost(postId, userId);
     }
 }

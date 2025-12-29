@@ -1,24 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
 
 @Injectable()
 export class PostService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
-    async createPost(createPostDto: CreatePostDto, username: string) {
-        const user = await this.prisma.users.findUnique({
-            where: { username},
-        })
-        if (!user){
-            throw new Error('User not found');
-        }
+    async createPost(createPostDto: CreatePostDto, userIdFromToken: string) {
         return this.prisma.post.create({
             data: {
                 content: createPostDto.content,
                 imageUrl: createPostDto.imageId,
-                authorId: BigInt(user.id),
+                authorId: BigInt(userIdFromToken),
                 title: createPostDto.title,
             },
         });
@@ -40,15 +34,15 @@ export class PostService {
         })
     }
 
-    async updatePost(id: number, updatePostDto: UpdatePostDto, userId: number) {
+    async updatePost(id: number, updatePostDto: UpdatePostDto, userIdFromToken: string) {
         const post = await this.prisma.post.findUnique({
-            where: { id },
+            where: { id: Number(id) },
         })
-        if (!post || post.authorId !== BigInt(userId)){
-            throw new Error('Post not found or unauthorized');
+        if (!post || post.authorId !== BigInt(userIdFromToken)) {
+            throw new ForbiddenException('You are not authorized to update this post');
         }
         return this.prisma.post.update({
-            where: {id},
+            where: { id: Number(id) },
             data: {
                 content: updatePostDto.content,
                 title: updatePostDto.title,
@@ -57,15 +51,15 @@ export class PostService {
         });
     }
 
-    async deletePost(id: number, userId: number){
+    async deletePost(id: number, userIdFromToken: string) {
         const post = await this.prisma.post.findUnique({
-            where: { id },
+            where: { id: Number(id) },
         })
-        if (!post || post.authorId !== BigInt(userId)){
-            throw new Error('Post not found or unauthorized');
+        if (!post || post.authorId !== BigInt(userIdFromToken)) {
+            throw new ForbiddenException('You are not authorized to delete this post');
         }
         return this.prisma.post.delete({
-            where: {id}
+            where: { id: Number(id) }
         })
     }
 }

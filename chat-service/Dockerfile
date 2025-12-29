@@ -2,17 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the code
 COPY . .
 
-# Build the NestJS app
-RUN npm run build
+RUN npx prisma generate
+
+# RUN npm run build
+RUN npm run build && ls -R dist
 
 EXPOSE 3333
 
-# Run the app in production mode
-CMD ["npm", "run", "start:prod"]
+# CMD ["npm", "run", "start:prod"]
+CMD npx prisma db push && node dist/src/main.js
