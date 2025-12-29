@@ -12,6 +12,8 @@ AuthService/.mvn/wrapper/maven-wrapper.jar
 AuthService/.mvn/wrapper/maven-wrapper.properties
 
 # --- NestJS (chat-service) ---
+generated/
+chat-service/node_modules/generated/
 chat-service/node_modules/
 chat-service/dist/
 chat-service/npm-debug.log*

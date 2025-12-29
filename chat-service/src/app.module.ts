@@ -1,19 +1,18 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
-import { ChatGateway } from './chat.gateway';
-import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { PostModule } from './post/post.module';
+import { ChatModule } from './chat/chat.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'defaultSecretKey',
-      signOptions: { expiresIn: '1h' },
-    }),
+    AuthModule,
     PrismaModule,
+    PostModule,
+    ChatModule,
+    PostModule,
   ],
-  providers: [ChatGateway, PrismaService],
 })
 export class AppModule {}

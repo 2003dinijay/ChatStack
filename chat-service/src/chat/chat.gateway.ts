@@ -1,9 +1,8 @@
 import { UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import { WsAuthGuard } from "./auth/WsAuth.guard";
+import { WsAuthGuard } from "../auth/WsAuth.guard";
 import { Server, Socket } from "socket.io";
-import { PrismaService } from "./prisma/prisma.service";
-import { reverse } from "dns";
+import { PrismaService } from "../prisma/prisma.service";
 
 @WebSocketGateway(
     {
