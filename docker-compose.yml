@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   auth-db:
@@ -11,7 +11,9 @@ services:
       POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
-    
+    networks:
+      - app-network
+
   auth-service:
     build: ./AuthService
     container_name: auth-service-container
@@ -21,8 +23,15 @@ services:
       - DB_HOST=auth-db
       - DB_PORT=5432
       - JWT_SECRET=${JWT_SECRET}
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
     depends_on:
       - auth-db
+      - rabbitmq
+    networks:
+      - app-network
 
   chat-service:
     build: ./chat-service
@@ -35,6 +44,8 @@ services:
     depends_on:
       - auth-db
       - auth-service
+    networks:
+      - app-network
 
   media-service:
     build: ./media-service
@@ -45,6 +56,8 @@ services:
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    networks:
+      - app-network
 
   frontend:
     build: ./Frontend
@@ -62,3 +75,21 @@ services:
       - auth-service
       - chat-service
       - media-service
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # communication port
+      - "15672:15672" # management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
