@@ -14,6 +14,10 @@ public class RabbitMQConfig {
     public static final String QUEUE = "user.registration.queue";
     public static final String ROUTING_KEY = "user.registration.key";
 
+    public static final String Email_EXCHANGE = "email.exchange";
+    public static final String Email_QUEUE = "email.queue";
+    public static final String Email_ROUTING_KEY = "email.otp.key";
+
     @Bean
     public Queue queue() {
         return new Queue(QUEUE);
@@ -27,6 +31,21 @@ public class RabbitMQConfig {
     @Bean
     public Binding binding(Queue queue, TopicExchange exchange){
         return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue emailQueue() {
+        return new Queue(Email_QUEUE);
+    }
+
+    @Bean
+    public TopicExchange emailExchange(){
+        return new TopicExchange(Email_EXCHANGE);
+    }
+
+    @Bean
+    public Binding emailBinding(Queue emailQueue, TopicExchange emailExchange){
+        return BindingBuilder.bind(emailQueue).to(emailExchange).with(Email_ROUTING_KEY);
     }
 
     @Bean

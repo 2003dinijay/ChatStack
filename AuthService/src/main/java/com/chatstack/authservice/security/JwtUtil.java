@@ -2,8 +2,8 @@ package com.chatstack.authservice.security;
 
 import com.chatstack.authservice.entities.User;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,15 +11,18 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final String secret = System.getenv("JWT_SECRET");
-    private final Key key = Keys.hmacShaKeyFor(secret.getBytes());
-    private final int expirationMs = 864000000; // 24 hours
+    private static final int EXPIRATION_MS = 864000000; // 24 hours
+    private final Key key;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(User user){
         return Jwts.builder()
                 .setSubject(user.getId().toString())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime()+ expirationMs))
+                .setExpiration(new Date((new Date()).getTime() + EXPIRATION_MS))
                 .signWith(key)
                 .compact();
     }
