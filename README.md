@@ -1,98 +1,299 @@
-# ChatStack Project Documentation
+# ChatStack
+
+A modern, microservices-based real-time chat and social media platform built with Java Spring Boot, NestJS, and Next.js.
 
 ## Overview
 
-ChatStack is a microservices-based chat application that provides real-time messaging, user authentication, media sharing, and social features. The project is built using a combination of Java Spring Boot, NestJS, and Next.js technologies.
+ChatStack is a full-featured communication platform that combines real-time messaging, user authentication, social posting, and media management. The application uses a containerized microservices architecture for scalability and maintainability.
 
-## Architecture
+## Project Structure
 
-The application follows a microservices architecture with the following components:
+```
+ChatStack/
+├── AuthService/          # Java Spring Boot - Authentication & Authorization
+├── chat-service/         # NestJS - Real-time chat and posts
+├── email-service/        # NestJS - Email notifications microservice
+├── media-service/        # NestJS - Media upload and processing
+└── Frontend/             # Next.js - Web application interface
+```
 
-- **AuthService**: Handles user authentication and authorization
-- **Chat Service**: Manages real-time chat functionality and posts
-- **Media Service**: Handles file uploads and media processing
-- **Frontend**: Web application interface
-- **User Service**: User management and profiles (in development)
+---
 
-All services are containerized using Docker and orchestrated with Docker Compose.
+## 🎯 Implemented Features
 
-## Services
+### ✅ Authentication Service (AuthService)
+**Technology**: Java Spring Boot 4.0.1 | **Port**: 8080 | **Database**: PostgreSQL
 
-### AuthService
-- **Technology**: Java Spring Boot
-- **Port**: 8080
-- **Database**: PostgreSQL
-- **Features**:
-  - User registration and login
-  - JWT token-based authentication
-  - Password encryption
-  - User session management
+**Completed Features**:
+- ✅ User registration with email validation
+- ✅ Email verification with OTP codes
+- ✅ User login with JWT token generation
+- ✅ Password reset workflow with OTP
+- ✅ OTP resend functionality
+- ✅ Profile retrieval (authenticated users)
+- ✅ JWT-based token authentication
+- ✅ Spring Security integration
+- ✅ Password hashing and encryption
+- ✅ Email-based user management
 
-### Chat Service
-- **Technology**: NestJS with TypeScript
-- **Port**: 3333
-- **Database**: PostgreSQL (shared with AuthService)
-- **Features**:
-  - Real-time chat via WebSockets
-  - Post creation and management
-  - JWT authentication for API endpoints
-  - Prisma ORM for database operations
+**API Endpoints**:
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/verify` - Email verification
+- `POST /api/auth/login` - User login
+- `POST /api/auth/forgotPassword` - Password reset request
+- `POST /api/auth/resetPassword` - Reset password with OTP
+- `POST /api/auth/resendOtp` - Resend verification code
+- `GET /api/auth/me` - Get authenticated user profile
 
-### Media Service
-- **Technology**: NestJS with TypeScript
-- **Port**: 3004
-- **Features**:
-  - File upload handling
-  - Cloudinary integration for media storage
-  - Image and media processing
+**Documentation**: See [AuthService/Auth_documentation.md](AuthService/Auth_documentation.md)
+
+---
+
+### ✅ Chat Service
+**Technology**: NestJS with TypeScript | **Port**: 3333 | **Database**: PostgreSQL | **ORM**: Prisma
+
+**Completed Features**:
+- ✅ Real-time chat via WebSockets
+- ✅ Message history retrieval
+- ✅ Create social posts with title and content
+- ✅ Read feed of all posts
+- ✅ Update posts (author only)
+- ✅ Delete posts (author only)
+- ✅ Post-user relationship management
+- ✅ JWT authentication guards
+- ✅ WebSocket authentication (WsAuth.guard)
+- ✅ Message persistence
+
+**WebSocket Events**:
+- `send_message` - Send a real-time message
+- `receive_message` - Receive incoming messages
+- `get_history` - Fetch chat history
+
+**REST Endpoints**:
+- `POST /posts` - Create new post (authenticated)
+- `GET /posts` - Get all posts with author details
+- `PATCH /posts/:id` - Update post (owner only)
+- `DELETE /posts/:id` - Delete post (owner only)
+
+**Database Models**:
+- `users` - User accounts (linked to AuthService)
+- `post` - Social posts with author references
+- `message` - Chat messages with timestamps
+
+---
+
+### ✅ Email Service
+**Technology**: NestJS with TypeScript | **Message Queue**: RabbitMQ
+
+**Completed Features**:
+- ✅ Email microservice with RabbitMQ integration
+- ✅ Event-driven email sending
+- ✅ OTP email delivery
+- ✅ Asynchronous message processing
+- ✅ Microservice architecture implementation
+
+---
+
+### ✅ Media Service
+**Technology**: NestJS with TypeScript | **Port**: 3004
+
+**Completed Features**:
+- ✅ File upload handling
+- ✅ Cloudinary integration for media storage
+- ✅ Image processing capabilities
+- ✅ Media URL generation
+
+---
+
+### ✅ Frontend Application
+**Technology**: Next.js 14+ with React & TypeScript | **Port**: 3000 | **Styling**: Tailwind CSS + Radix UI
+
+**Completed Features**:
+- ✅ Landing page with marketing content
+- ✅ User login interface
+- ✅ User registration (registration page structure)
+- ✅ Real-time chat interface with WebSocket integration
+- ✅ Message history display
+- ✅ User authentication context
+- ✅ JWT token management
+- ✅ Protected routes (authentication required)
+- ✅ Responsive design
+- ✅ Dark/light theme support
+- ✅ Socket.io client integration
+- ✅ Navigation components
+- ✅ User avatar with initials
+- ✅ Message timestamps
+- ✅ Auto-scroll to latest messages
+- ✅ Keyboard shortcuts (Enter to send)
+- ✅ Error handling and loading states
+
+**Pages**:
+- `/` - Landing page
+- `/login` - Login page
+- `/chat` - Real-time chat interface
+- `/register` - User registration page
+
+---
+
+## 🛠 Technology Stack
+
+### Backend
+- **Spring Boot** 4.0.1 - Java framework for AuthService
+- **NestJS** - TypeScript framework for microservices
+- **Prisma** - Modern ORM for database operations
+- **Spring Security** - Authentication and authorization
+- **JWT** - Token-based authentication
+- **PostgreSQL** - Primary database
+- **RabbitMQ** - Message queue for async communication
 
 ### Frontend
-- **Technology**: Next.js with React and TypeScript
-- **Port**: 3000
-- **Features**:
-  - User authentication UI
-  - Real-time chat interface
-  - Responsive design with Tailwind CSS
-  - Socket.io client for WebSocket connections
-  - Dark/light theme support
+- **Next.js** 14+ - React framework with SSR/SSG
+- **React** 18+ - UI library
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Utility-first CSS framework
+- **Radix UI** - Unstyled, accessible component library
+- **Socket.io** - Real-time communication client
 
-## Key Features
+### DevOps & Infrastructure
+- **Docker** - Container images for all services
+- **Docker Compose** - Service orchestration
+- **Cloudinary** - Media hosting and processing
 
-- **Authentication**: Secure user login/registration with JWT tokens
-- **Real-time Chat**: WebSocket-based messaging
-- **Media Sharing**: Upload and share images/files
-- **Social Posts**: Create and interact with posts
-- **Responsive UI**: Modern web interface with theme support
+---
 
-## Technologies Used
+## 🚀 Getting Started
 
-- **Backend**: Java Spring Boot, NestJS
-- **Frontend**: Next.js, React, TypeScript
-- **Database**: PostgreSQL
-- **ORM**: JPA (AuthService), Prisma (Chat Service)
-- **Authentication**: JWT, Spring Security
-- **Real-time**: Socket.io
-- **Media Storage**: Cloudinary
-- **Styling**: Tailwind CSS, Radix UI
-- **Containerization**: Docker, Docker Compose
+### Prerequisites
+- Docker and Docker Compose
+- Node.js 18+ (for frontend development)
+- Java 17+ (for AuthService development)
+- PostgreSQL (if running services locally without Docker)
 
-## Development Status
+### Running with Docker Compose
 
-- ✅ AuthService: Basic authentication implemented
-- ✅ Chat Service: Real-time chat and posts implemented
-- ✅ Media Service: File upload with Cloudinary
-- ✅ Frontend: Basic UI with chat and login
+```bash
+# Navigate to project root
+cd ChatStack
 
-## API Endpoints
+# Start all services
+docker-compose up -d
 
-### AuthService (Port 8080)
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
+# Services will be available at:
+# - AuthService: http://localhost:8080
+# - Chat Service: http://localhost:3333
+# - Frontend: http://localhost:3000
+# - Media Service: http://localhost:3004
+```
 
-### Chat Service (Port 3333)
-- `GET /posts` - Get all posts
-- `POST /posts` - Create new post
-- WebSocket: Real-time chat events
+### Running Services Individually
 
-### Media Service (Port 3004)
-- `POST /media/upload` - Upload media files
+**AuthService**:
+```bash
+cd AuthService
+./mvnw spring-boot:run
+```
+
+**Chat Service**:
+```bash
+cd chat-service
+npm install
+npm run start:dev
+```
+
+**Frontend**:
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📊 Database Schema
+
+### Users Table
+```sql
+CREATE TABLE users (
+  id BIGSERIAL PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  enabled BOOLEAN DEFAULT FALSE,
+  verficationCode VARCHAR(255),
+  verficationCodeExpiresAt TIMESTAMP
+);
+```
+
+### Posts Table
+```sql
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255),
+  content TEXT NOT NULL,
+  imageUrl VARCHAR(255),
+  authorId BIGINT NOT NULL REFERENCES users(id),
+  createdAt TIMESTAMP DEFAULT NOW(),
+  updatedAt TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Messages Table
+```sql
+CREATE TABLE message (
+  id SERIAL PRIMARY KEY,
+  sender VARCHAR(255) NOT NULL,
+  text TEXT NOT NULL,
+  timestamp TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+## 🔐 Security Features
+
+- ✅ JWT token-based authentication
+- ✅ Password hashing with Spring Security encoder
+- ✅ Email verification with OTP
+- ✅ Protected API endpoints with authentication guards
+- ✅ CORS configuration for trusted origins
+- ✅ WebSocket authentication
+- ✅ Authorization checks on post updates/deletions
+
+---
+
+## 📝 API Documentation
+
+- **AuthService**: See [AuthService/Auth_documentation.md](AuthService/Auth_documentation.md) for complete endpoint documentation
+
+---
+
+## Environment Configuration
+
+Each service requires specific environment variables. Configure them in respective `.env` files or through Docker environment variables.
+
+### Key Environment Variables
+- Database connection strings (PostgreSQL)
+- JWT secret keys
+- Cloudinary credentials
+- RabbitMQ connection URL
+- CORS allowed origins
+- Email service credentials
+
+---
+
+## 📜 Project Status
+
+- ✅ Authentication and Authorization (Complete)
+- ✅ Real-time Chat (Complete)
+- ✅ Social Posts (Complete)
+- ✅ Email Service (Complete)
+- ✅ Media Service (Complete)
+- ✅ Frontend UI (Complete)
+- ✅ WebSocket Integration (Complete)
+- ✅ Docker Containerization (Complete)
+
+---
+
+## 📄 License
+
+This project is part of the ChatStack platform.
