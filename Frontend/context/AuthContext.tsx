@@ -3,58 +3,130 @@ import { AuthContextType, User } from "@/lib/types";
 import { authService } from "@/services/auth.service";
 import { createContext, useContext, useEffect, useState } from "react";
 
-// create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
     children: React.ReactNode;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({children}: AuthProviderProps) => {
     const [user, setUser] = useState<User | null>(null);
+    const [pendingRegistration, setPendingRegistration] = useState<{
+        email: string;
+        username: string;
+    } | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // onfirst load , check for token in localStorage
     useEffect(() => {
         const initializeAuth = async () => {
-            const token = authService.getToken();
-            const storedUser = localStorage.getItem('user');
-            if (token && storedUser) {
-                try {
-                    setUser(JSON.parse(storedUser));
+            try {
+                const token = authService.getToken();
+                if (token) {
+                    setUser({
+                        id: "1",
+                        username: "User",
+                        email: "user@example.com"
+                    });
                 }
-                catch (error) {
-                    console.error("Failed to parse stored user:", error);
-                    authService.logout();
-                }
+            } catch (err) {
+                console.error("Failed to initialize auth", err);
+                authService.logout();
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
+
         initializeAuth();
     }, []);
 
-    const login = async (username: string, password: string): Promise<void> => {
+    const login = async (
+        username: string,
+        password: string
+    ) : Promise<void> => {
         try {
-            const data = await authService.login({ username, password });
-            setUser(data.user);
-            localStorage.setItem('user', JSON.stringify(data.user));
-        } catch (error) {
-            console.error("Login failed:", error);
-            throw error;
+            setLoading(true);
+            setError(null);
+
+            const response = await authService.login({ username, password});
+
+            setUser(response.user);
+        } catch (err: any) {
+            const message = err instanceof Error ? err.message : 'Login failed';
+            setError(message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const register = async (
+        credentials: {username: string; email: string; password: string;}
+    ) : Promise<void> => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await authService.register({
+                username: credentials.username,
+                email: credentials.email,
+                password: credentials.password
+            });
+
+            setPendingRegistration({
+                email: response.email,
+                username: response.username,
+            });
+
+        } catch (err: any) {
+            const message = err instanceof Error ? err.message : 'Registration failed';
+            setError(message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const verifyEmail = async (
+        email: string, verificationCode: string
+    ) : Promise<string> => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await authService.verifyEmail(email, verificationCode);
+            setPendingRegistration(null);
+            return response.message;
+        } catch (err: any) {
+            const message = err instanceof Error ? err.message : 'Email verification failed';
+            setError(message);
+            throw err;
+        } finally {
+            setLoading(false);
         }
     };
 
     const logout = () => {
         authService.logout();
         setUser(null);
-        localStorage.removeItem('user');
+        setError(null);
+        setPendingRegistration(null);
     };
+
+    const getToken = (): string | null => {
+        return authService.getToken();
+    }
 
     const contextValue: AuthContextType = {
         user,
         loading,
+        error,
+        isAuthenticated: !!user,
+        pendingRegistration,
         login,
         logout,
+        getToken,
+        register,
+        verifyEmail
     };
 
     return (
@@ -64,10 +136,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
-    if (!context) {
+    if(!context) {
         throw new Error("useAuth must be used within an AuthProvider");
     }
+
     return context;
 }
