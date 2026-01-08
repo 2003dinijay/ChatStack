@@ -23,11 +23,19 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
             try {
                 const token = authService.getToken();
                 if (token) {
-                    setUser({
-                        id: "1",
-                        username: "User",
-                        email: "user@example.com"
-                    });
+                    // Fetch real user data from backend
+                    try {
+                        const userData = await authService.getCurrentUser();
+                        setUser({
+                            id: userData.id,
+                            username: userData.username,
+                            email: userData.email || '' // /me endpoint doesn't return email, use empty string
+                        });
+                    } catch (err) {
+                        console.error('Failed to fetch user data:', err);
+                        // Token is invalid, clear it
+                        authService.logout();
+                    }
                 }
             } catch (err) {
                 console.error("Failed to initialize auth", err);
@@ -50,7 +58,12 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
 
             const response = await authService.login({ username, password});
 
-            setUser(response.user);
+            // Backend returns flat structure: { token, id, username, email }
+            setUser({
+                id: response.id,
+                username: response.username,
+                email: response.email
+            });
         } catch (err: any) {
             const message = err instanceof Error ? err.message : 'Login failed';
             setError(message);

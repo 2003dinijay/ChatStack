@@ -1,5 +1,5 @@
 export interface User {
-    id: string;
+    id: number;
     username: string;
     email: string;
 }
@@ -10,9 +10,10 @@ export interface LoginCredentials {
 }
 
 export interface LoginResponse {
-    user: User;
     token: string;
-    refreshToken: string;
+    id: number;
+    username: string;
+    email: string;
 }
 
 export interface RegisterCredentials {
@@ -23,16 +24,17 @@ export interface RegisterCredentials {
 }
 
 export interface RegisterResponse {
-    id: string;
+    id: number;
     username: string;
     email: string;
     enabled: boolean;
-    message: string;
+    verficationCode: string; // Received but never displayed
+    verficationCodeExpiresAt: string; // ISO 8601 datetime
 }
 
 export interface VerifyEmailRequest {
     email: string;
-    verificationCode: string;
+    code: string; // Backend expects 'code' not 'verificationCode'
 }
 
 export interface VerifyEmailResponse {
