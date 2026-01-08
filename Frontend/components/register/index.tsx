@@ -14,39 +14,40 @@ export default function RegisterPageComponent() {
     const [password, setPassword] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
-    const [error, setError] = useState<string | null>(null);
+    const [localError, setLocalError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const { register } = useAuth();
+    const { register, error: authError } = useAuth();
     const router = useRouter();
 
     const validateForm = (): boolean => {
         if (!username || !password || !email || !confirmPassword) {
-            setError('All fields are required.');
+            setLocalError('All fields are required.');
             return false;
         }
         if (password !== confirmPassword) {
-            setError('Passwords do not match.');
+            setLocalError('Passwords do not match.');
             return false;
         }
         if (username.length < 3) {
-            setError('Username must be at least 3 characters long.');
+            setLocalError('Username must be at least 3 characters long.');
             return false;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            setError('Invalid email format.');
+            setLocalError('Invalid email format.');
             return false;
         }
         if (password.length < 8) {
-            setError('Password must be at least 8 characters long.');
+            setLocalError('Password must be at least 8 characters long.');
+            return false;
         }
         return true;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
+        setLocalError(null);
 
         if (!validateForm()) {
             return;
@@ -61,9 +62,10 @@ export default function RegisterPageComponent() {
                 confirmPassword,
             });
 
-            router.push('verify-email');
+            router.push('/verify-email');
         } catch (err) {
             console.error('Registration error:', err);
+            // Error is set by context in authError
         } finally {
             setIsLoading(false);
         }
@@ -85,9 +87,9 @@ export default function RegisterPageComponent() {
 
                 <CardContent className="space-y-5">
                     {/* Error Message */}
-                    {error && (
+                    {(localError || authError) && (
                         <div className="rounded-md bg-destructive/15 p-3.5 text-sm text-destructive">
-                            {error}
+                            {localError || authError}
                         </div>
                     )}
 

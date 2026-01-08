@@ -7,6 +7,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Loader2, MessageSquare } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPageComponent() {
     const [username, setUsername] = useState<string>('');
@@ -95,6 +96,15 @@ export default function LoginPageComponent() {
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isLoading ? 'Authenticating...' : 'Login'}
                     </Button>
+                    <div className="text-center text-sm text-muted-foreground">
+                        Don't have an account?{' '}
+                        <Link
+                            href="/register"
+                            className="text-chart-6 hover:underline font-medium"
+                        >
+                            Sign up here
+                        </Link>
+                    </div>
                 </CardFooter>
             </Card>
         </div>
