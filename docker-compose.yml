@@ -16,6 +16,48 @@ services:
       retries: 5
     ports:
       - "5432:5432"
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    
+  chat-db:
+    image: postgres:16-alpine
+    container_name: chat-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${CHAT_DB_USER}
+      POSTGRES_PASSWORD: ${CHAT_DB_PASSWORD}
+      POSTGRES_DB: ${CHAT_DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CHAT_DB_USER} -d ${CHAT_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5434:5432"
+    volumes:
+      - chat-postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  social-db:
+    image: postgres:16-alpine
+    container_name: social-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${SOCIAL_DB_USER}
+      POSTGRES_PASSWORD: ${SOCIAL_DB_PASSWORD}
+      POSTGRES_DB: ${SOCIAL_DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SOCIAL_DB_USER} -d ${SOCIAL_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    volumes:
+      - social-postgres-data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -44,6 +86,9 @@ services:
     environment:
       - DB_HOST=auth-db
       - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
@@ -62,9 +107,10 @@ services:
       - "3333:3333"
     environment:
       - JWT_SECRET=${JWT_SECRET}
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@auth-db:5432/${DB_NAME}
+      - DATABASE_URL=postgresql://${CHAT_DB_USER}:${CHAT_DB_PASSWORD}@chat-db:5432/${CHAT_DB_NAME}
+      - AUTH_SERVICE_URL=http://auth-service:8080
     depends_on:
-      - auth-db
+      - chat-db
       - auth-service
     networks:
       - app-network
@@ -116,3 +162,8 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  auth-postgres-data:
+  chat-postgres-data:
+  social-postgres-data:
