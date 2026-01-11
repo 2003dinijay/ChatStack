@@ -26,3 +26,11 @@ model post {
 
   @@map("posts")
 }
+
+model comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  content   String
+  authorId  BigInt
+  createdAt DateTime @default(now())
+}
