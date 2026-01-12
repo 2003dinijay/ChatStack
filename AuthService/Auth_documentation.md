@@ -391,27 +391,278 @@ curl -X GET http://localhost:8080/api/auth/me \
 
 - **Framework:** Spring Boot 4.0.1
 - **Language:** Java 17
-- **Database:** Database (as configured in application.properties)
+- **Database:** PostgreSQL
 - **Security:** Spring Security with JWT
 - **Validation:** Jakarta Validation API
 - **ORM:** Spring Data JPA with Hibernate
+- **Message Queue:** RabbitMQ (for email service integration)
+- **Password Encoding:** BCryptPasswordEncoder
+
+---
+
+## Architecture & Components
+
+### Core Components
+
+#### Controllers
+1. **AuthController** (`/api/auth/*`)
+   - Handles all public authentication endpoints
+   - User registration, verification, login, password recovery
+   - CORS enabled for `http://localhost:3000`
+
+2. **InternalUserController** (`/api/internal/users/*`)
+   - Internal API for service-to-service communication
+   - Provides user lookup by ID and batch operations
+   - Username/email existence checks
+   - Should be restricted to internal network in production
+
+#### Services
+- **AuthService**: Business logic for authentication operations
+  - User registration with OTP generation
+  - Email verification
+  - Password reset workflow
+  - OTP resend functionality
+  - JWT token generation
+
+#### Security Components
+- **JwtUtil**: JWT token generation and validation
+- **JwtAuthenticationFilter**: Intercepts and validates JWT tokens
+- **SecurityConfig**: Spring Security configuration with JWT integration
+- **GlobalExceptionHandler**: Centralized exception handling
+
+#### Entities
+- **User**: JPA entity with validation annotations
+  - Email and username uniqueness constraints
+  - Password hashing on save
+  - OTP code management with expiration
+
+#### DTOs
+- **LoginRequest**: Login credentials DTO
+- **AuthResponse**: Login response with JWT token
+- **UserDto**: User data transfer object (excludes sensitive information)
+
+---
+
+## Internal API Endpoints
+
+### GET `/api/internal/users/{id}`
+Get user information by ID (for microservice communication).
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "username": "johndoe",
+  "email": "john@example.com"
+}
+```
+
+### POST `/api/internal/users/batch`
+Get multiple users by IDs in batch.
+
+**Request Body:**
+```json
+{
+  "ids": [1, 2, 3]
+}
+```
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "username": "johndoe",
+    "email": "john@example.com"
+  },
+  {
+    "id": 2,
+    "username": "janedoe",
+    "email": "jane@example.com"
+  }
+]
+```
+
+### GET `/api/internal/users/exists/username/{username}`
+Check if username exists.
+
+**Response (200 OK):**
+```json
+{
+  "exists": true
+}
+```
+
+### GET `/api/internal/users/exists/email/{email}`
+Check if email exists.
+
+**Response (200 OK):**
+```json
+{
+  "exists": false
+}
+```
 
 ---
 
 ## Configuration
 
 The service is configured via `application.properties` in `src/main/resources/`. Key configurations include:
-- Database connection details
-- JWT secret key and expiration settings
-- Email service configuration for OTP delivery
-- CORS settings (currently allows `http://localhost:3000`)
+
+### Database Configuration
+```properties
+spring.datasource.url=jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:auth_db}
+spring.datasource.username=${DB_USER:user}
+spring.datasource.password=${DB_PASSWORD:password}
+spring.datasource.driver-class-name=org.postgresql.Driver
+```
+
+### JPA/Hibernate Configuration
+```properties
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+```
+
+### JWT Configuration
+```properties
+jwt.secret=${JWT_SECRET:a_very_long_random_string_for_local_development_only}
+```
+
+### Environment Variables
+- `DB_HOST`: Database host (default: localhost)
+- `DB_PORT`: Database port (default: 5432)
+- `DB_NAME`: Database name (default: auth_db)
+- `DB_USER`: Database username (default: user)
+- `DB_PASSWORD`: Database password (default: password)
+- `JWT_SECRET`: JWT signing secret key
+
+---
+
+## Security Features
+
+### Password Security
+- Passwords are hashed using BCryptPasswordEncoder
+- Plain text passwords are never stored
+- Password strength requirements: minimum 8 characters
+
+### JWT Token Authentication
+- JWT tokens generated on successful login
+- Token contains username claim
+- Token expiration configurable
+- Tokens validated on protected endpoints
+
+### Email Verification
+- OTP codes sent via RabbitMQ to email service
+- OTP expiration implemented
+- Users must verify email before login
+
+### CORS Configuration
+- Configured to allow requests from frontend (`http://localhost:3000`)
+- Customizable for production environments
+
+### Authorization
+- Protected endpoints require valid JWT token
+- `/api/auth/me` requires authentication
+- Internal APIs should be restricted to service network
+
+---
+
+## Docker Support
+
+### Dockerfile
+The service includes a multi-stage Dockerfile for optimized builds:
+- Build stage: Compiles Java application with Maven
+- Runtime stage: Runs the application with JRE 17
+
+### Docker Compose Integration
+The service is configured in the main `docker-compose.yml`:
+- Port: 8080
+- PostgreSQL database dependency
+- RabbitMQ connection for email service
+- Environment variables for database and JWT
+
+---
+
+## RabbitMQ Integration
+
+The AuthService publishes email events to RabbitMQ for asynchronous email delivery:
+- **Queue**: `email_queue`
+- **Exchange**: Direct exchange
+- **Events**: OTP emails, password reset emails, verification emails
+
+---
+
+## Database Schema
+
+### Users Table
+```sql
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(20) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    enabled BOOLEAN DEFAULT FALSE,
+    verfication_code VARCHAR(255),
+    verfication_code_expires_at TIMESTAMP
+);
+```
+
+**Indexes**:
+- Primary key on `id`
+- Unique constraint on `username`
+- Unique constraint on `email`
+
+---
+
+## Testing
+
+The service includes test configuration:
+- Spring Boot Test dependencies
+- Security test support
+- Data JPA test support
+- WebMVC test support
+
+---
+
+## Deployment
+
+### Local Development
+```bash
+cd AuthService
+./mvnw spring-boot:run
+```
+
+### Docker Deployment
+```bash
+# Build image
+docker build -t chatstack-auth .
+
+# Run container
+docker run -p 8080:8080 \
+  -e DB_HOST=postgres \
+  -e DB_NAME=auth_db \
+  -e JWT_SECRET=your_secret \
+  chatstack-auth
+```
+
+### Production Considerations
+- Set strong JWT secret via environment variable
+- Configure database connection pooling
+- Enable HTTPS/TLS
+- Restrict internal API endpoints to service network
+- Configure proper logging and monitoring
+- Set up database backups
+- Use secrets management for credentials
 
 ---
 
 ## Notes
 
 - All timestamps are in ISO 8601 format
-- Passwords are hashed using Spring Security's password encoder
+- Passwords are hashed using BCryptPasswordEncoder with Spring Security
 - OTP codes have an expiration time (configurable)
 - JWT tokens have a configurable expiration time
 - Email verification is required before a user can log in
+- Internal APIs should not be publicly accessible in production
+- The service uses environment variables for configuration flexibility
