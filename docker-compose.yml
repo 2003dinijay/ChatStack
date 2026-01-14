@@ -61,6 +61,23 @@ services:
     networks:
       - app-network
 
+  mongodb:
+    image: mongo:7
+    container_name: mongo-container
+    restart: always
+    ports:
+      - "27018:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - app-network
+
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -153,6 +170,32 @@ services:
     networks:
       - app-network
 
+
+  # User Profile Service (Node.js + MongoDB)
+  user-service:
+    build: ./user-service
+    container_name: user-service-container
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      PORT: 4001
+      MONGO_URI: mongodb://mongodb:27017/user_profiles
+      JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:8080
+      NODE_ENV: production
+      CORS_ORIGIN: http://localhost:3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - app-network
+  
+
+ 
+
   # frontend:
   #   build: ./Frontend
   #   container_name: frontend-container
@@ -180,3 +223,5 @@ volumes:
   auth-postgres-data:
   chat-postgres-data:
   social-postgres-data:
+  mongodb-data:     
+  rabbitmq-data: 
