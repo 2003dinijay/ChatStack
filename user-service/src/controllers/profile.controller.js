@@ -1,12 +1,9 @@
-// src/controllers/profile.controller.js
 const Profile = require('../models/Profile.model');
 const axios = require('axios');
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:8080';
 
-/**
- * Fetch user details (username, email) from Auth Service
- */
+//fwtch user details from auth service
 async function fetchUserFromAuthService(userId, token) {
   try {
     const response = await axios.get(`${AUTH_SERVICE_URL}/api/auth/me`, {
@@ -20,11 +17,7 @@ async function fetchUserFromAuthService(userId, token) {
     return null;
   }
 }
-
-/**
- * Get current user's profile
- * Combines profile data from this service with username/email from Auth Service
- */
+//get current user's profile from userId in token
 exports.getMyProfile = async (req, res) => {
   try {
     const userId = req.userId;
@@ -46,7 +39,6 @@ exports.getMyProfile = async (req, res) => {
     // Fetch username and email from Auth Service
     const authUser = await fetchUserFromAuthService(userId, token);
 
-    // Combine data: profile from MongoDB + username/email from Auth Service
     const completeProfile = {
       userId: profile.userId,
       username: authUser?.username || `user_${userId}`,
@@ -70,11 +62,7 @@ exports.getMyProfile = async (req, res) => {
   }
 };
 
-/**
- * Update current user's profile
- * ONLY allows updating: bio, avatarUrl, address, socialLinks
- * Does NOT allow updating username or email
- */
+
 exports.updateMyProfile = async (req, res) => {
   try {
     const userId = req.userId;
@@ -149,9 +137,7 @@ exports.updateMyProfile = async (req, res) => {
   }
 };
 
-/**
- * Get any user's profile by userId
- */
+//get profile by userId
 exports.getProfileByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -169,8 +155,7 @@ exports.getProfileByUserId = async (req, res) => {
       });
     }
 
-    // Fetch username and email from Auth Service
-    // Note: This uses the requester's token, might need adjustment based on your auth flow
+    
     const authUser = await fetchUserFromAuthService(parseInt(userId), requestToken);
 
     // Return complete profile
@@ -194,11 +179,7 @@ exports.getProfileByUserId = async (req, res) => {
     });
   }
 };
-
-/**
- * Create current user's profile
- * Accepts allowed fields and fails if a profile already exists
- */
+//create profile for current user
 exports.createMyProfile = async (req, res) => {
   try {
     const userId = req.userId;
