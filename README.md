@@ -21,8 +21,10 @@ ChatStack/
 
 ## 🎯 Implemented Features
 
-### ✅ Authentication Service (AuthService)
+### ✅ Authentication Service (AuthService) - COMPLETE
 **Technology**: Java Spring Boot 4.0.1 | **Port**: 8080 | **Database**: PostgreSQL
+
+A fully-featured authentication and authorization microservice built with Spring Boot and Spring Security, providing secure user management with JWT token authentication.
 
 **Completed Features**:
 - ✅ User registration with email validation
@@ -31,19 +33,57 @@ ChatStack/
 - ✅ Password reset workflow with OTP
 - ✅ OTP resend functionality
 - ✅ Profile retrieval (authenticated users)
-- ✅ JWT-based token authentication
+- ✅ JWT-based token authentication with bearer tokens
 - ✅ Spring Security integration
-- ✅ Password hashing and encryption
-- ✅ Email-based user management
+- ✅ BCrypt password hashing and encryption
+- ✅ Email-based user management via RabbitMQ
+- ✅ Internal microservice APIs for user lookup
+- ✅ Batch user retrieval for other services
+- ✅ Username/email existence checks
+- ✅ CORS configuration for frontend integration
+- ✅ Global exception handling
+- ✅ Input validation with Jakarta Validation
+- ✅ Docker containerization
+- ✅ Environment-based configuration
 
-**API Endpoints**:
+**Public API Endpoints**:
 - `POST /api/auth/register` - User registration
-- `POST /api/auth/verify` - Email verification
-- `POST /api/auth/login` - User login
+- `POST /api/auth/verify` - Email verification with OTP
+- `POST /api/auth/login` - User login (returns JWT token)
 - `POST /api/auth/forgotPassword` - Password reset request
 - `POST /api/auth/resetPassword` - Reset password with OTP
 - `POST /api/auth/resendOtp` - Resend verification code
 - `GET /api/auth/me` - Get authenticated user profile
+
+**Internal Service-to-Service API**:
+- `GET /api/internal/users/{id}` - Get user by ID
+- `POST /api/internal/users/batch` - Get multiple users by IDs
+- `GET /api/internal/users/exists/username/{username}` - Check username exists
+- `GET /api/internal/users/exists/email/{email}` - Check email exists
+
+**Architecture Components**:
+- **Controllers**: AuthController, InternalUserController
+- **Services**: AuthService (business logic)
+- **Security**: JwtUtil, JwtAuthenticationFilter, SecurityConfig
+- **Entities**: User (JPA entity with validation)
+- **DTOs**: LoginRequest, AuthResponse, UserDto
+- **Message Queue**: RabbitMQ integration for email events
+- **Exception Handling**: GlobalExceptionHandler
+
+**Security Features**:
+- BCrypt password encoding
+- JWT token generation and validation
+- Protected routes with JWT authentication filter
+- Email verification requirement before login
+- OTP expiration mechanism
+- CORS protection
+
+**Configuration**:
+- Environment-based database configuration
+- Configurable JWT secret
+- PostgreSQL with JPA/Hibernate
+- Docker multi-stage build
+- RabbitMQ message queue integration
 
 **Documentation**: See [AuthService/Auth_documentation.md](AuthService/Auth_documentation.md)
 

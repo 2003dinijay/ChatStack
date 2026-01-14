@@ -99,6 +99,19 @@ services:
       - rabbitmq
     networks:
       - app-network
+  social-service:
+    build: ./social-service
+    container_name: social-service-container
+    ports:
+      - "3334:3334"
+    environment:
+      - PORT=3334
+      - DATABASE_URL=postgresql://${SOCIAL_DB_USER}:${SOCIAL_DB_PASSWORD}@social-db:5432/${SOCIAL_DB_NAME}?schema=public
+    depends_on:
+      social-db:
+        condition: service_healthy
+    networks:
+      - app-network
 
   chat-service:
     build: ./chat-service
